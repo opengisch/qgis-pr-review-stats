@@ -2,9 +2,9 @@
 """
 PR review statistics for qgis/QGIS.
 
-Fetches: all open PRs + PRs merged in the last 2 months.
+Fetches: all open PRs + PRs merged in the last N months.
 Requires: gh CLI (https://cli.github.com/) authenticated with `gh auth login`
-Outputs: TSV to stdout, progress to stderr
+Outputs: Markdown to stdout, HTML file, progress to stderr
 """
 
 import json
@@ -14,6 +14,7 @@ import sys
 from datetime import datetime, timedelta
 
 USERS = ["3nids", "nirvn", "m-kuhn", "signedav", "ValentinBuira", "gacarrillor"]
+NUM_MONTHS = 3
 
 # GraphQL search query — GitHub search supports is:open, is:merged, merged:>date
 SEARCH_QUERY = """
@@ -77,21 +78,21 @@ def main():
     if not shutil.which("gh"):
         sys.exit("Error: 'gh' CLI not found. Install from https://cli.github.com/")
 
-    # Last 3 months + current month
+    # Last NUM_MONTHS months + current month
     now = datetime.now()
     first_of_current = now.replace(day=1)
-    # Go back exactly 3 months
-    m = first_of_current.month - 3
+    # Go back exactly NUM_MONTHS months
+    m = first_of_current.month - NUM_MONTHS
     y = first_of_current.year
     while m < 1:
         m += 12
         y -= 1
-    three_months_ago = first_of_current.replace(year=y, month=m)
-    merged_since = three_months_ago.strftime("%Y-%m-%d")
+    start_month = first_of_current.replace(year=y, month=m)
+    merged_since = start_month.strftime("%Y-%m-%d")
 
-    # Build month labels: 3 previous months + current
+    # Build month labels: NUM_MONTHS previous months + current
     months = []
-    d = three_months_ago
+    d = start_month
     while d <= first_of_current:
         months.append(d.strftime("%Y-%m"))
         if d.month == 12:
