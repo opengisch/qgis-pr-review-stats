@@ -216,14 +216,15 @@ def main():
 <html><head><meta charset="utf-8">
 <title>QGIS PR Review Statistics</title>
 <style>
-@media print {{ @page {{ size: landscape; margin: 1cm; }} #filters {{ display: none; }} }}
+@media print {{ @page {{ size: landscape; margin: 1cm; }} #filters, #copyVisiblePrsBtn {{ display: none; }} }}
 * {{ box-sizing: border-box; }}
 body {{ font-family: -apple-system, Helvetica, Arial, sans-serif; margin: 0; padding: 1.5em; font-size: 12px; color: #24292e; }}
 h1 {{ font-size: 20px; margin: 0 0 4px; }}
 .subtitle {{ color: #586069; margin-bottom: 1em; }}
 #filters {{ display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 1em; padding: 10px 14px; background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; }}
 #filters label {{ font-weight: 600; font-size: 11px; text-transform: uppercase; color: #586069; }}
-#filters select, #filters input {{ padding: 4px 8px; border: 1px solid #d1d5da; border-radius: 4px; font-size: 12px; }}
+#filters select, #filters input, #filters button {{ padding: 4px 8px; border: 1px solid #d1d5da; border-radius: 4px; font-size: 12px; }}
+#filters button {{ background: #fff; cursor: pointer; }}
 #filters input[type=text] {{ width: 200px; }}
 .filter-group {{ display: flex; align-items: center; gap: 4px; }}
 .chip {{ display: inline-block; padding: 2px 8px; margin: 1px; border-radius: 10px; font-size: 11px; cursor: pointer; border: 1px solid #d1d5da; background: #fff; user-select: none; }}
@@ -275,6 +276,9 @@ a:hover {{ text-decoration: underline; }}
       <option value="merged_by">Merged by</option>
     </select>
   </div>
+  <div class="filter-group">
+    <button id="copyVisiblePrsBtn" type="button" onclick="copyVisiblePrs()">Copy PR URLs</button>
+  </div>
 </div>
 <div id="stats"></div>
 <table>
@@ -293,6 +297,9 @@ const MONTHS = {months_json};
 
 let activeUsers = new Set(USERS.map(u => u.toLowerCase()));
 let activeMonths = new Set(MONTHS);
+let visibleURLs = [];
+let copyResetTimer = null;
+const copyButtonDefaultText = document.getElementById('copyVisiblePrsBtn').textContent;
 
 function initChips() {{
   const userContainer = document.getElementById('userChips');
@@ -350,6 +357,7 @@ function render() {{
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
   let count = 0;
+  visibleURLs = [];
 
   DATA.forEach(r => {{
     // State filter
@@ -373,6 +381,7 @@ function render() {{
       else if (!fActivity && (nc || nr || mg)) {{ hasActivity = true; break; }}
     }}
     if (!hasActivity) return;
+    visibleURLs.push(r.url);
 
     const tr = document.createElement('tr');
     tr.className = r.state;
@@ -409,6 +418,18 @@ function render() {{
   }});
 
   document.getElementById('stats').textContent = count + ' / ' + DATA.length + ' PRs shown';
+}}
+
+function copyVisiblePrs() {{
+  const btn = document.getElementById('copyVisiblePrsBtn');
+  navigator.clipboard.writeText(visibleURLs.join('\\n')).then(() => {{
+    if (copyResetTimer) clearTimeout(copyResetTimer);
+    btn.textContent = '✅ Copied!';
+    copyResetTimer = setTimeout(() => {{
+      btn.textContent = copyButtonDefaultText;
+      copyResetTimer = null;
+    }}, 1500);
+  }});
 }}
 
 function escHtml(s) {{
