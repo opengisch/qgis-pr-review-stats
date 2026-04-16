@@ -298,6 +298,8 @@ const MONTHS = {months_json};
 let activeUsers = new Set(USERS.map(u => u.toLowerCase()));
 let activeMonths = new Set(MONTHS);
 let visibleURLs = [];
+let copyResetTimer = null;
+const copyButtonDefaultText = document.getElementById('copyVisiblePrsBtn').textContent;
 
 function initChips() {{
   const userContainer = document.getElementById('userChips');
@@ -421,10 +423,11 @@ function render() {{
 function copyVisiblePrs() {{
   const btn = document.getElementById('copyVisiblePrsBtn');
   navigator.clipboard.writeText(visibleURLs.join('\\n')).then(() => {{
-    const oldText = btn.textContent;
+    if (copyResetTimer) clearTimeout(copyResetTimer);
     btn.textContent = '✅ Copied!';
-    setTimeout(() => {{
-      btn.textContent = oldText;
+    copyResetTimer = setTimeout(() => {{
+      btn.textContent = copyButtonDefaultText;
+      copyResetTimer = null;
     }}, 1500);
   }});
 }}
