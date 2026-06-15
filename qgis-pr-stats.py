@@ -25,7 +25,7 @@ query($q: String!, $cursor: String) {
       ... on PullRequest {
         number title url state merged mergedAt createdAt
         mergedBy { login }
-        reviews(first: 50) { nodes { author { login } } }
+        reviews(first: 50) { nodes { author { login } state body } }
         comments(first: 50) { nodes { author { login } } }
         reviewThreads(first: 50) {
           nodes { comments(first: 10) { nodes { author { login } } } }
@@ -122,9 +122,16 @@ def main():
         merged_by = (pr.get("mergedBy") or {}).get("login", "").lower()
         state = "merged" if pr.get("merged") else pr.get("state", "").lower()
 
-        # Count formal reviews per user
+        # Count formal reviews per user. Skip "COMMENTED" reviews with no
+        # overall body: GitHub auto-creates these as containers for inline
+        # comments (already counted below as comments), so they don't
+        # represent an actual review.
         reviews = {}
         for r in pr["reviews"]["nodes"]:
+            rstate = (r.get("state") or "").upper()
+            rbody = (r.get("body") or "").strip()
+            if rstate == "COMMENTED" and not rbody:
+                continue
             l = login(r)
             reviews[l] = reviews.get(l, 0) + 1
 
