@@ -275,6 +275,10 @@ a:hover {{ text-decoration: underline; }}
       <option value="merged_by">Merged by</option>
     </select>
   </div>
+  <div class="filter-group">
+    <label>Reviewed by:</label>
+    <select id="fReviewedBy"><option value="">Anyone</option></select>
+  </div>
 </div>
 <div id="stats"></div>
 <table>
@@ -345,6 +349,7 @@ function render() {{
   const fState = document.getElementById('fState').value;
   const fSearch = document.getElementById('fSearch').value.toLowerCase();
   const fActivity = document.getElementById('fActivity').value;
+  const fReviewedBy = document.getElementById('fReviewedBy').value;
 
   buildHeader();
   const tbody = document.getElementById('tbody');
@@ -360,6 +365,12 @@ function render() {{
 
     // Month filter
     if (r.month && !activeMonths.has(r.month)) return;
+
+    // Reviewed-by filter: PR must have a formal review from the chosen user
+    if (fReviewedBy) {{
+      const rb = r.u[fReviewedBy];
+      if (!rb || rb[1] <= 0) return;
+    }}
 
     // User/activity filter: PR must have activity from at least one active user
     let hasActivity = false;
@@ -417,11 +428,23 @@ function escHtml(s) {{
   return d.innerHTML;
 }}
 
+function initReviewedBy() {{
+  const sel = document.getElementById('fReviewedBy');
+  USERS.forEach(u => {{
+    const opt = document.createElement('option');
+    opt.value = u;
+    opt.textContent = '@' + u;
+    sel.appendChild(opt);
+  }});
+}}
+
 document.getElementById('fState').onchange = render;
 document.getElementById('fSearch').oninput = render;
 document.getElementById('fActivity').onchange = render;
+document.getElementById('fReviewedBy').onchange = render;
 
 initChips();
+initReviewedBy();
 render();
 </script>
 </body></html>"""
