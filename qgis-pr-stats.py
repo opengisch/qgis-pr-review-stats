@@ -231,6 +231,8 @@ h1 {{ font-size: 20px; margin: 0 0 4px; }}
 #filters {{ display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 1em; padding: 10px 14px; background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; }}
 #filters label {{ font-weight: 600; font-size: 11px; text-transform: uppercase; color: #586069; }}
 #filters select, #filters input {{ padding: 4px 8px; border: 1px solid #d1d5da; border-radius: 4px; font-size: 12px; }}
+#filters button {{ padding: 5px 10px; border: 1px solid #d1d5da; border-radius: 4px; font-size: 12px; background: #fff; cursor: pointer; }}
+#filters button:hover {{ background: #f6f8fa; }}
 #filters input[type=text] {{ width: 200px; }}
 .filter-group {{ display: flex; align-items: center; gap: 4px; }}
 .chip {{ display: inline-block; padding: 2px 8px; margin: 1px; border-radius: 10px; font-size: 11px; cursor: pointer; border: 1px solid #d1d5da; background: #fff; user-select: none; }}
@@ -286,6 +288,9 @@ a:hover {{ text-decoration: underline; }}
     <label>Reviewed by:</label>
     <select id="fReviewedBy"><option value="">Anyone</option></select>
   </div>
+  <div class="filter-group">
+    <button type="button" id="copyCol" title="Copy the PR column of all shown rows for pasting into a spreadsheet">Copy PR column</button>
+  </div>
 </div>
 <div id="stats"></div>
 <table>
@@ -304,6 +309,7 @@ const MONTHS = {months_json};
 
 let activeUsers = new Set(USERS.map(u => u.toLowerCase()));
 let activeMonths = new Set(MONTHS);
+let shownPRs = [];
 
 function initChips() {{
   const userContainer = document.getElementById('userChips');
@@ -361,6 +367,7 @@ function render() {{
   buildHeader();
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
+  shownPRs = [];
   let count = 0;
 
   DATA.forEach(r => {{
@@ -399,6 +406,7 @@ function render() {{
     const tdPR = document.createElement('td');
     tdPR.innerHTML = '<a href="' + r.url + '" target="_blank">#' + r.num + '</a> ' + escHtml(r.title);
     tr.appendChild(tdPR);
+    shownPRs.push('#' + r.num + ' ' + r.title);
 
     // State cell
     const tdState = document.createElement('td');
@@ -449,6 +457,27 @@ document.getElementById('fState').onchange = render;
 document.getElementById('fSearch').oninput = render;
 document.getElementById('fActivity').onchange = render;
 document.getElementById('fReviewedBy').onchange = render;
+
+document.getElementById('copyCol').onclick = async (e) => {{
+  const btn = e.currentTarget;
+  const text = shownPRs.join('\n');
+  const orig = btn.textContent;
+  try {{
+    await navigator.clipboard.writeText(text);
+  }} catch (err) {{
+    // Fallback for non-secure contexts (e.g. file://)
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  }}
+  btn.textContent = 'Copied ' + shownPRs.length + ' rows';
+  setTimeout(() => {{ btn.textContent = orig; }}, 1500);
+}};
 
 initChips();
 initReviewedBy();

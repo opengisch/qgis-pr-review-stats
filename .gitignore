@@ -1,0 +1,9 @@
+# Generated artifacts
+qgis-pr-stats.html
+qgis-pr-stats.md
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
