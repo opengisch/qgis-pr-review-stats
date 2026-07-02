@@ -310,6 +310,7 @@ const MONTHS = {months_json};
 let activeUsers = new Set(USERS.map(u => u.toLowerCase()));
 let activeMonths = new Set(MONTHS);
 let shownPRs = [];
+let copyResetTimer = null;
 
 function initChips() {{
   const userContainer = document.getElementById('userChips');
@@ -461,7 +462,6 @@ document.getElementById('fReviewedBy').onchange = render;
 document.getElementById('copyCol').onclick = async (e) => {{
   const btn = e.currentTarget;
   const text = shownPRs.join('\n');
-  const orig = btn.textContent;
   try {{
     await navigator.clipboard.writeText(text);
   }} catch (err) {{
@@ -476,7 +476,8 @@ document.getElementById('copyCol').onclick = async (e) => {{
     document.body.removeChild(ta);
   }}
   btn.textContent = 'Copied ' + shownPRs.length + ' rows';
-  setTimeout(() => {{ btn.textContent = orig; }}, 1500);
+  clearTimeout(copyResetTimer);
+  copyResetTimer = setTimeout(() => {{ btn.textContent = 'Copy PR column'; }}, 1500);
 }};
 
 initChips();
