@@ -461,7 +461,7 @@ document.getElementById('fReviewedBy').onchange = render;
 
 document.getElementById('copyCol').onclick = async (e) => {{
   const btn = e.currentTarget;
-  const text = shownPRs.join('\n');
+  const text = shownPRs.join('\\n');
   try {{
     await navigator.clipboard.writeText(text);
   }} catch (err) {{
