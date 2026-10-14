@@ -13,7 +13,7 @@ import subprocess
 import sys
 from datetime import datetime, timedelta
 
-USERS = ["3nids", "nirvn", "m-kuhn", "signedav", "ValentinBuira", "gacarrillor"]
+USERS = ["3nids", "nirvn", "m-kuhn", "signedav", "CeliaBuira", "gacarrillor"]
 NUM_MONTHS = 3
 
 # GraphQL search query — GitHub search supports is:open, is:merged, merged:>date
